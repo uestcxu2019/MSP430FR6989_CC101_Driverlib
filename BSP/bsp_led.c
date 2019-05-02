@@ -50,11 +50,6 @@ void GPIO_InitConfig(void)
  */
 void LED_Config(void)
 {
-	//配置引脚方向为输出
-	GPIO_setAsOutputPin(LED1_GPIO_PORT,LED1_GPIO_PIN);
-	//初始化输出高电平点亮LED
-	GPIO_setOutputLowOnPin(LED1_GPIO_PORT,LED1_GPIO_PIN);
-
 	//配置GDIO0为输入下拉
 	GPIO_setAsInputPinWithPullDownResistor(IOCFG0_GPIO_PORT,IOCFG0_GPIO_PIN);
 

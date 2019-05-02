@@ -21,6 +21,13 @@
 #define	  IOCFG2_GPIO_PORT		GPIO_PORT_P3
 #define	  IOCFG2_GPIO_PIN		GPIO_PIN2
 
+//°´¼ü
+#define	  BUTTON1_GPIO_PORT		GPIO_PORT_P1
+#define   BUTTON1_GPIO_PIN		GPIO_PIN2
+
+#define	  BUTTON2_GPIO_PORT		GPIO_PORT_P1
+#define   BUTTON2_GPIO_PIN		GPIO_PIN1
+
 void GPIO_InitConfig(void);
 void LED_Config(void);
 

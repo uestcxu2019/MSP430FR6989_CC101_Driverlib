@@ -65,8 +65,6 @@
 #include "string.h"
 
 //自己写的文件的头文件
-#include "bsp_uart.h"
-#include "bsp_cs_clk.h"
 #include "bsp_led.h"
 #include "bsp_spi.h"
 #include "bsp_cc1101.h"

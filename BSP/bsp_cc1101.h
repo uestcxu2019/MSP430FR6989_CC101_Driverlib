@@ -142,22 +142,12 @@
 #define		DATA_LEN			255					//定义数据包长度
 
 
-void Test_Write_Read_byte(uint8_t Write_addr,uint8_t Write_Data,uint8_t Read_addr, uint8_t Read_cmd);
 void Write_CMD(uint8_t CMD);
 void Write_Data(uint8_t Write_Addr,uint8_t Write_data);
-uint8_t Read_byte(uint8_t Addr, uint8_t Cmd);
+void Write_burst(uint8_t Write_Addr,uint8_t *pbuffer,uint8_t Length);
+void CC1101_Reset(void);
 void CC1101_Init(void);
 void WriteTxFITO(uint8_t * pBuffer,uint8_t len);
-void Test_Write_Single_TxFITO(uint8_t pBuffer);
-void ReadRxFIFO(uint8_t *pBuffer,uint16_t len);
 void CC1101_RFDataPack_Send(uint8_t *pBuff, uint16_t len);
-void CC1101_RFDataPack_Rceive(uint8_t *pBuff, uint16_t len);
-void Test_RF_Single_Send(uint8_t pData);
-
-void Write_Read_burst(uint8_t Write_Addr,uint8_t *pbuffer,uint8_t Read_Addr,uint8_t Length);
-void Write_burst(uint8_t Write_Addr,uint8_t *pbuffer,uint8_t Length);
-void Read_burst(uint8_t Read_Addr,uint8_t *data,uint8_t Length);
-void CC1101_Reset(void);
-
 
 #endif /* BSP_BSP_CC1101_H_ */

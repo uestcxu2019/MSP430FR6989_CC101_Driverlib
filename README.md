@@ -1,0 +1,2 @@
+# MSP430FR6989_CC101_Driverlib
+基于MSP430FFR6989固件库(官方驱动库Driverlib)编写的CC1101/CC115L无线接收代码

@@ -7,9 +7,12 @@
  * 		Author	: Xuzhi Liu
  * 		Date	: 2018.11.29
  * 		Brief	: 用于CC1101无线射频收发通信
- * 				   自己写的文件的头文件也放进driverlib.h文件中
+ * 				   自己写的文件的头文件也放进driverlib.h文件中,并在文件中添加条件编译宏定义
+ * 				   关于普通的GPIO配置放在bsp_led.c文件中
  *
- *
+ *				  说	明:如果需要修改发送数据,只需要修改发送数据TX_Buffer长度及数据即可
+ *					   本套代码适用于CC1101/CC115L
+ *					   本套代码为发送端代码,要使用还需要匹配相应的接收端代码
  * 			History
  * 					1.Author	: Xuzhi Liu
  * 					  Date		: 2018.11.29
@@ -31,76 +34,83 @@
  * 					  			  		   SPI_CS   --> P4.3
  * 					  			  		   SPI_MOSI --> P4.0
  * 					  			  		   SPI_MISO --> P4.1
+ *
  * 					  			   2.添加延时函数,基于CPU_CLOCK=8MHz
  *
  *
  *					3.Author	: Xuzhi Liu
  * 					  Date		: 2018.12.03
- * 					  Mod		: 添加CC1101文件
- * 					  			  增加硬件连接:
- * 					  			  		   GDIO0 --> P2.0
+ * 					  Mod		: 1.移植CC1101文件,添加bsp_cc1101.c和bsp_cc1101.h文件
+ * 					  			  2.使用系统默认时钟
+ * 					  			  	增加硬件连接:
+ * 					  			  			GDIO0 --> P2.0
+ * 					  			  			GDIO2 --> P3.2
+ * 					  			  	使用时,除了SPI通信的四根线外,还需连接射频模块CC1101的GDIO2引脚与P3.2引脚
+ *
+ *
+ *					4.Author	: Xuzhi Liu
+ *					  Date		: 2018.12.04
+ *					  Mod		: 添加按键(P1.1)控制LED1(P1.0),通过引脚接上CC1101电源引脚,测试上电到发送时间
+ *					  			  硬件连接:如果要通过按键控制发送测试上电到断电时间,连接方式如下
+ *					  			  				CC1101_VCC --> P1.0
+ *
+ *
+ *					5.Author	: Xuzhi Liu
+ *					  Date		: 2018.12.11
+ *					  Mod		: 添加按键(P1.2),两个按键一个用于开灯,一个用于关灯
+ *
+ *
+ *					6.Author	: Xuzhi Liu
+ *					  Date		: 2018.12.19
+ *					  Mod		: 没有修改,只是标注下移植说明
+ *					  			   现在使用的时EUSCI_B1 的SPI通信, 如果需要移植到EUSCI_A0通信,
+ *					  			   第一步: 找到EUSCI_A0通信的相关IO引脚,在数据手册里找到功能复用,
+ *					  			   第二步: 只需在bsp_spi.h两个文件中修改IO引脚,在bsp_spi.c文件里将引脚复用功能修改
+ *					  			   第三步: 将所有的USCI_B 改成USCI_A即可
+ *
+ *
+ *					7.Author	: Xuzhi Liu
+ *					  Date		: 2018.12.24
+ *					  Mod		: 添加黄瑞师兄的能量管理代码,在main函数中用注释包围起来
+ *					  			    删除不需要的测试代码,精简代码。
+ *								   系统时钟使用默认时钟。
+ *
+ *					  			   最终版硬件连接说明:
+ *
+ *									SPI通信连接:
+ *											 msp430fr6989
+ *									----------------------------
+ *					  			    |	   SPI_CLK  --> P4.2	|
+ *					  			    |	   						|
+ * 					  			  	|	   SPI_CS   --> P4.3	|
+ * 					  			  	|	   						|
+ * 					  			  	|	   SPI_MOSI --> P4.0	|
+ * 					  			  	|	   						|
+ * 					  			  	|	   SPI_MISO --> P4.1	|
+ *									-----------------------------
+ *									CC1101/CC115L电源引脚直接接VCC(3.3v)
  *
  ***********************************************************************************/
 
 #include "driverlib.h"
+#include "_PMM_1_X.h"
 
 int main(void)
 {
 	uint8_t Tx_Buffer[5]={0x59,0x02,0x32,0x04,0x22};   //定义要发送的数据
     WDT_A_hold(WDT_A_BASE);		// Stop watchdog timer
-    PMM_unlockLPM5();
-    GPIO_InitConfig();
-//   CS_Init_Config();
-    LED_Config();
-    UART_Init();
-    SPI_Init();
 
-    CC1101_Reset();
-	CC1101_Init();
-	Write_CMD(SFTX);
-//    SendByte(data);
-	CC1101_RFDataPack_Send(Tx_Buffer, sizeof(Tx_Buffer));
-    while(1)
-    {
-#if			F
-/*******************************************************************
-    *	Author	:	xuzhi Liu
-    *	Date	:	2018.12.03
-    *	Function:	闪灯测试
-*******************************************************************/
-/*    	UART_Send_String("\n成功完成UART通讯了，哈哈\n");
-    	GPIO_toggleOutputOnPin(LED1_GPIO_PORT,LED1_GPIO_PIN);
-    	Delay_ms(100);*/
-    	Write_Data(IOCFG2_ADDR,GDO_LOW);		//熄灭GDO0
-    	Write_Data(IOCFG0_ADDR,GDO_LOW);		//熄灭GDO2
-//    	UART_Send_String("\n熄灭LED\n");
-    	Delay_ms(1000);				//延时1s
-    	Write_Data(IOCFG0_ADDR,GDO_HIGH);		//点亮GDO0
-    	Write_Data(IOCFG2_ADDR,GDO_HIGH);		//点亮GDO2
-//    	UART_Send_String("\n点亮LED\n");
-    	Delay_ms(1000);
+/*-------------------------------黄瑞师兄能量管理代码-----------------------------------------*/
+    _MCU_LPM_Set_(_PMM1X_IO_Start);        // Low Power Set -- all port set to GND output(LEDL on)
+/*-----------------------------------------------------------------------------------------*/
 
-#elif		F
-/*******************************************************************
-    *	Author	:	xuzhi Liu
-    *	Date	:	2018.12.03
-    *	Function:	收发测试
-*******************************************************************/
+    SPI_Init();											//SPI初始化配置
+    CC1101_Reset();										//复位CC1101
+	CC1101_Init();										//CC1101初始化
+	Write_CMD(SFTX);									//清除发送缓存区
+	CC1101_RFDataPack_Send(Tx_Buffer, sizeof(Tx_Buffer));//发送数据
 
-    	Test_Write_Read_byte(IOCFG0_ADDR,0x12,IOCFG0_ADDR|READ_SINGLE, READ_SINGLE);
-    	Delay_ms(1000);
-
-#elif		T
-/*******************************************************************
-	*	Author	:	xuzhi Liu
-	*	Date	:	2018.12.03
-	*	Function:	发送数据包
-*******************************************************************/
-//    	CC1101_RFDataPack_Send(Tx_Buffer, sizeof(Tx_Buffer));
-//		Delay_ms(1000);							//延时1s
-
-#endif
-
-    }
+/*-------------------------------黄瑞师兄能量管理代码-----------------------------------------*/
+	_PMM1X_IO_End();
+/*-----------------------------------------------------------------------------------------*/
 }
-

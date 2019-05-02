@@ -3,7 +3,20 @@
  *
  *  Created on: 2018年11月30日
  *      Author: xu
- *      SPI初始化配置
+ *      SPI初始化配置			【复用功能通过datasheet里查找】
+ *
+ *      		硬件说明:
+ *      		 	EUSCI_B1_SPI:						//IO复用改为Secondary module function is selected
+ *      						SPI_CLK  --> P4.2
+* 					  		    SPI_CS   --> P4.3
+* 					  			SPI_MOSI --> P4.0
+* 					  			SPI_MISO --> P4.1
+ *
+ *      			EUSCI_A0_SPI:						//IO复用改为Primary module function is selected
+ *      						SPI_CLK  --> P2.2
+* 					  		    SPI_CS   --> P2.3
+* 					  			SPI_MOSI --> P4.2
+* 					  			SPI_MISO --> P4.3
  */
 
 #include "bsp_spi.h"
@@ -54,10 +67,10 @@ void SPI_CS_LOW(void)
  */
 void SPI_Init_Config(void)
 {
-	EUSCI_B_SPI_initMasterParam SPInitStruct;
+	EUSCI_B_SPI_initMasterParam SPInitStruct={0};
 	SPInitStruct.selectClockSource = EUSCI_B_SPI_CLOCKSOURCE_SMCLK;
-	SPInitStruct.clockSourceFrequency = 1000000;
-	SPInitStruct.desiredSpiClock= 1000000;
+	SPInitStruct.clockSourceFrequency = CS_getSMCLK();
+	SPInitStruct.desiredSpiClock= CS_getSMCLK();
 	SPInitStruct.msbFirst= EUSCI_B_SPI_MSB_FIRST;
 	SPInitStruct.clockPhase = EUSCI_B_SPI_PHASE_DATA_CAPTURED_ONFIRST_CHANGED_ON_NEXT;
 	SPInitStruct.clockPolarity = EUSCI_B_SPI_CLOCKPOLARITY_INACTIVITY_LOW;
@@ -78,6 +91,8 @@ void SPI_Init(void)
 	SPI_GPIO_Config();
 	EUSCI_B_SPI_select4PinFunctionality(SPI_BASE_ADDR,EUSCI_B_SPI_ENABLE_SIGNAL_FOR_4WIRE_SLAVE);
 	EUSCI_B_SPI_enable(SPI_BASE_ADDR);
+
+//	EUSCI_B_SPI_enableInterrupt(SPI_BASE_ADDR,EUSCI_B_SPI_TRANSMIT_INTERRUPT);
 }
 
 /*
